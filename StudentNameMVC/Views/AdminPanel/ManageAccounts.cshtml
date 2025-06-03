@@ -1,0 +1,177 @@
+@model List<StudentNameMVC.Models.AccountViewModel>
+@{
+    ViewData["Title"] = "Manage Accounts";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Manage Accounts</h1>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createAccountModal">
+                    <i class="fas fa-plus"></i> Create New Account
+                </button>
+            </div>
+
+            <!-- Search Form -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <form method="get" class="d-flex">
+                        <input type="text" name="search" value="@ViewBag.Search" class="form-control me-2" placeholder="Search accounts..." />
+                        <button type="submit" class="btn btn-outline-primary">Search</button>
+                        @if (!string.IsNullOrEmpty(ViewBag.Search))
+                        {
+                            <a href="@Url.Action("ManageAccounts")" class="btn btn-outline-secondary ms-2">Clear</a>
+                        }
+                    </form>
+                </div>
+            </div>
+
+            <!-- Accounts Table -->
+            <div class="card">
+                <div class="card-body">
+                    @if (Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var account in Model)
+                                    {
+                                        <tr>
+                                            <td>@account.AccountId</td>
+                                            <td>@account.AccountName</td>
+                                            <td>@account.AccountEmail</td>
+                                            <td>
+                                                <span class="badge @(account.AccountRole == 1 ? "bg-success" : "bg-info")">
+                                                    @account.RoleName
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-warning" onclick="editAccount(@account.AccountId)">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="deleteAccount(@account.AccountId, '@account.AccountName')">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <h5>No accounts found</h5>
+                            <p>@(string.IsNullOrEmpty(ViewBag.Search) ? "No accounts available." : $"No accounts found for '{ViewBag.Search}'.")</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Account Modal -->
+<div class="modal fade" id="createAccountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be loaded via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Account Modal -->
+<div class="modal fade" id="editAccountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be loaded via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Load create form when modal opens
+            $('#createAccountModal').on('show.bs.modal', function() {
+                $.get('@Url.Action("CreateAccount")', function(data) {
+                    $('#createAccountModal .modal-body').html(data);
+                });
+            });
+        });
+
+        function editAccount(id) {
+            $.get('@Url.Action("EditAccount")/' + id, function(data) {
+                $('#editAccountModal .modal-body').html(data);
+                $('#editAccountModal').modal('show');
+            });
+        }
+
+        function deleteAccount(id, name) {
+            if (confirm('Are you sure you want to delete account "' + name + '"?')) {
+                $.post('@Url.Action("DeleteAccount")/' + id, function(response) {
+                    if (response.success) {
+                        showToast('success', response.message);
+                        location.reload();
+                    } else {
+                        showToast('error', response.message);
+                    }
+                }).fail(function() {
+                    showToast('error', 'An error occurred while deleting the account.');
+                });
+            }
+        }
+
+        function submitAccountForm(formId, modalId) {
+            var form = $('#' + formId);
+            $.post(form.attr('action'), form.serialize(), function(response) {
+                if (response.success) {
+                    $('#' + modalId).modal('hide');
+                    showToast('success', response.message);
+                    location.reload();
+                } else {
+                    $('#' + modalId + ' .modal-body').html(response);
+                }
+            }).fail(function() {
+                showToast('error', 'An error occurred while saving the account.');
+            });
+        }
+
+        function showToast(type, message) {
+            var toastClass = type === 'success' ? 'bg-success' : 'bg-danger';
+            var toast = $('<div class="toast align-items-center text-white ' + toastClass + ' border-0" role="alert">' +
+                '<div class="d-flex">' +
+                '<div class="toast-body">' + message + '</div>' +
+                '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+                '</div></div>');
+            
+            $('.toast-container').remove();
+            $('body').append('<div class="toast-container position-fixed top-0 end-0 p-3"></div>');
+            $('.toast-container').append(toast);
+            toast.toast('show');
+        }
+    </script>
+}

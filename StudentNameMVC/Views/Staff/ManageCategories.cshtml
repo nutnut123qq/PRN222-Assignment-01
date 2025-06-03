@@ -1,0 +1,188 @@
+@model List<StudentNameMVC.Models.CategoryViewModel>
+@{
+    ViewData["Title"] = "Manage Categories";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Manage Categories</h1>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
+                    <i class="fas fa-plus"></i> Create New Category
+                </button>
+            </div>
+
+            <!-- Search Form -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <form method="get" class="d-flex">
+                        <input type="text" name="search" value="@ViewBag.Search" class="form-control me-2" placeholder="Search categories..." />
+                        <button type="submit" class="btn btn-outline-primary">Search</button>
+                        @if (!string.IsNullOrEmpty(ViewBag.Search))
+                        {
+                            <a href="@Url.Action("ManageCategories")" class="btn btn-outline-secondary ms-2">Clear</a>
+                        }
+                    </form>
+                </div>
+            </div>
+
+            <!-- Categories Table -->
+            <div class="card">
+                <div class="card-body">
+                    @if (Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>Parent Category</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var category in Model)
+                                    {
+                                        <tr>
+                                            <td>@category.CategoryId</td>
+                                            <td>@category.CategoryName</td>
+                                            <td>@(category.CategoryDescription ?? "N/A")</td>
+                                            <td>@(category.ParentCategoryName ?? "Root Category")</td>
+                                            <td>
+                                                <span class="badge @(category.IsActive ? "bg-success" : "bg-danger")">
+                                                    @(category.IsActive ? "Active" : "Inactive")
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-warning" onclick="editCategory(@category.CategoryId)">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </button>
+                                                @if (category.CanDelete)
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-danger" onclick="deleteCategory(@category.CategoryId, '@category.CategoryName')">
+                                                        <i class="fas fa-trash"></i> Delete
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-secondary" disabled title="Cannot delete - has news articles or subcategories">
+                                                        <i class="fas fa-trash"></i> Delete
+                                                    </button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <h5>No categories found</h5>
+                            <p>@(string.IsNullOrEmpty(ViewBag.Search) ? "No categories available." : $"No categories found for '{ViewBag.Search}'.")</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Category Modal -->
+<div class="modal fade" id="createCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be loaded via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Category Modal -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be loaded via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Load create form when modal opens
+            $('#createCategoryModal').on('show.bs.modal', function() {
+                $.get('@Url.Action("CreateCategory")', function(data) {
+                    $('#createCategoryModal .modal-body').html(data);
+                });
+            });
+        });
+
+        function editCategory(id) {
+            $.get('@Url.Action("EditCategory")/' + id, function(data) {
+                $('#editCategoryModal .modal-body').html(data);
+                $('#editCategoryModal').modal('show');
+            });
+        }
+
+        function deleteCategory(id, name) {
+            if (confirm('Are you sure you want to delete category "' + name + '"?\n\nNote: You can only delete categories that have no news articles or subcategories.')) {
+                $.post('@Url.Action("DeleteCategory")/' + id, function(response) {
+                    if (response.success) {
+                        showToast('success', response.message);
+                        location.reload();
+                    } else {
+                        showToast('error', response.message);
+                    }
+                }).fail(function() {
+                    showToast('error', 'An error occurred while deleting the category.');
+                });
+            }
+        }
+
+        function submitCategoryForm(formId, modalId) {
+            var form = $('#' + formId);
+            $.post(form.attr('action'), form.serialize(), function(response) {
+                if (response.success) {
+                    $('#' + modalId).modal('hide');
+                    showToast('success', response.message);
+                    location.reload();
+                } else {
+                    $('#' + modalId + ' .modal-body').html(response);
+                }
+            }).fail(function() {
+                showToast('error', 'An error occurred while saving the category.');
+            });
+        }
+
+        function showToast(type, message) {
+            var toastClass = type === 'success' ? 'bg-success' : 'bg-danger';
+            var toast = $('<div class="toast align-items-center text-white ' + toastClass + ' border-0" role="alert">' +
+                '<div class="d-flex">' +
+                '<div class="toast-body">' + message + '</div>' +
+                '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+                '</div></div>');
+            
+            $('.toast-container').remove();
+            $('body').append('<div class="toast-container position-fixed top-0 end-0 p-3"></div>');
+            $('.toast-container').append(toast);
+            toast.toast('show');
+        }
+    </script>
+}

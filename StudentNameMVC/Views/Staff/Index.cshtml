@@ -1,0 +1,104 @@
+@model List<StudentNameMVC.Models.NewsArticleViewModel>
+@{
+    ViewData["Title"] = "Staff Dashboard";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4">Staff Dashboard</h1>
+            
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">My News Articles</h5>
+                            <h2 class="card-text">@Model.Count</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-success">
+                        <div class="card-body">
+                            <h5 class="card-title">Active Articles</h5>
+                            <h2 class="card-text">@Model.Count(n => n.NewsStatus)</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-warning">
+                        <div class="card-body">
+                            <h5 class="card-title">Inactive Articles</h5>
+                            <h2 class="card-text">@Model.Count(n => !n.NewsStatus)</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Quick Actions</h5>
+                        </div>
+                        <div class="card-body">
+                            <a asp-action="ManageNews" class="btn btn-primary mb-2 d-block">
+                                <i class="fas fa-newspaper"></i> Manage News Articles
+                            </a>
+                            <a asp-action="ManageCategories" class="btn btn-info mb-2 d-block">
+                                <i class="fas fa-folder"></i> Manage Categories
+                            </a>
+                            <a asp-action="Profile" class="btn btn-secondary d-block">
+                                <i class="fas fa-user"></i> Edit Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Recent News Articles</h5>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Category</th>
+                                                <th>Status</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var news in Model.Take(5))
+                                            {
+                                                <tr>
+                                                    <td>@news.NewsTitle</td>
+                                                    <td>@news.CategoryName</td>
+                                                    <td>
+                                                        <span class="badge @(news.NewsStatus ? "bg-success" : "bg-danger")">
+                                                            @news.StatusText
+                                                        </span>
+                                                    </td>
+                                                    <td>@news.CreatedDateFormatted</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No news articles found.</p>
+                                <a asp-action="CreateNews" class="btn btn-primary btn-sm">Create Your First Article</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

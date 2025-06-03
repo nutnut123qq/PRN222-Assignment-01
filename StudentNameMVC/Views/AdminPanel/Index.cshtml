@@ -1,0 +1,109 @@
+@model List<StudentNameMVC.Models.AccountViewModel>
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4">Admin Dashboard</h1>
+            
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Accounts</h5>
+                            <h2 class="card-text">@Model.Count</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-body">
+                            <h5 class="card-title">Staff Accounts</h5>
+                            <h2 class="card-text">@Model.Count(a => a.AccountRole == 1)</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-info">
+                        <div class="card-body">
+                            <h5 class="card-title">Lecturer Accounts</h5>
+                            <h2 class="card-text">@Model.Count(a => a.AccountRole == 2)</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-warning">
+                        <div class="card-body">
+                            <h5 class="card-title">System Status</h5>
+                            <h6 class="card-text">Active</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Quick Actions</h5>
+                        </div>
+                        <div class="card-body">
+                            <a asp-action="ManageAccounts" class="btn btn-primary mb-2 d-block">
+                                <i class="fas fa-users"></i> Manage Accounts
+                            </a>
+                            <a asp-action="Reports" class="btn btn-info mb-2 d-block">
+                                <i class="fas fa-chart-bar"></i> View Reports
+                            </a>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-secondary d-block">
+                                <i class="fas fa-home"></i> View Public Site
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Recent Accounts</h5>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Role</th>
+                                                <th>Email</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var account in Model.Take(5))
+                                            {
+                                                <tr>
+                                                    <td>@account.AccountName</td>
+                                                    <td>
+                                                        <span class="badge @(account.AccountRole == 1 ? "bg-success" : "bg-info")">
+                                                            @account.RoleName
+                                                        </span>
+                                                    </td>
+                                                    <td>@account.AccountEmail</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No accounts found.</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

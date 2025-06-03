@@ -1,0 +1,96 @@
+@model StudentNameMVC.Models.NewsArticleViewModel
+
+<form id="createNewsForm" asp-action="CreateNews" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="mb-3">
+                <label asp-for="NewsTitle" class="form-label">News Title</label>
+                <input asp-for="NewsTitle" class="form-control" placeholder="Enter news title" />
+                <span asp-validation-for="NewsTitle" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="mb-3">
+                <label asp-for="Headline" class="form-label">Headline</label>
+                <input asp-for="Headline" class="form-control" placeholder="Enter news headline" />
+                <span asp-validation-for="Headline" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label asp-for="CategoryId" class="form-label">Category</label>
+                <select asp-for="CategoryId" class="form-select">
+                    <option value="">Select Category</option>
+                    @if (ViewBag.Categories != null)
+                    {
+                        @foreach (var category in ViewBag.Categories)
+                        {
+                            <option value="@category.CategoryId">@category.CategoryName</option>
+                        }
+                    }
+                </select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label asp-for="NewsSource" class="form-label">News Source</label>
+                <input asp-for="NewsSource" class="form-control" placeholder="Enter news source (optional)" />
+                <span asp-validation-for="NewsSource" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="mb-3">
+                <label asp-for="NewsContent" class="form-label">Content</label>
+                <textarea asp-for="NewsContent" class="form-control" rows="8" placeholder="Enter news content"></textarea>
+                <span asp-validation-for="NewsContent" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="mb-3">
+                <label asp-for="TagsString" class="form-label">Tags</label>
+                <input asp-for="TagsString" class="form-control" placeholder="Enter tags separated by commas (e.g., Breaking, Important, Event)" />
+                <span asp-validation-for="TagsString" class="text-danger"></span>
+                <small class="form-text text-muted">Separate multiple tags with commas</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="mb-3">
+                <label class="form-label">Status</label>
+                <div class="form-check">
+                    <input asp-for="NewsStatus" class="form-check-input" type="checkbox" checked />
+                    <label asp-for="NewsStatus" class="form-check-label">
+                        Active
+                    </label>
+                </div>
+                <span asp-validation-for="NewsStatus" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitNewsForm('createNewsForm', 'createNewsModal')">
+            <i class="fas fa-save"></i> Create Article
+        </button>
+    </div>
+</form>
+
+<script>
+    // Enable client-side validation
+    $.validator.unobtrusive.parse('#createNewsForm');
+</script>

@@ -1,0 +1,85 @@
+﻿@model List<StudentNameMVC.Models.NewsArticleViewModel>
+@{
+    ViewData["Title"] = "FU News Management System";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4">Latest News</h1>
+
+            <!-- Search and Filter -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <form method="get" class="d-flex">
+                        <input type="text" name="search" value="@ViewBag.Search" class="form-control me-2" placeholder="Search news..." />
+                        <button type="submit" class="btn btn-outline-primary">Search</button>
+                    </form>
+                </div>
+                <div class="col-md-4">
+                    <form method="get">
+                        <input type="hidden" name="search" value="@ViewBag.Search" />
+                        <select name="categoryId" class="form-select" onchange="this.form.submit()">
+                            <option value="">All Categories</option>
+                            @if (ViewBag.Categories != null)
+                            {
+                                @foreach (var category in ViewBag.Categories)
+                                {
+                                    @if (ViewBag.CategoryId == category.CategoryId)
+                                    {
+                                        <option value="@category.CategoryId" selected>@category.CategoryName</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@category.CategoryId">@category.CategoryName</option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </form>
+                </div>
+            </div>
+
+            <!-- News List -->
+            @if (Model != null && Model.Any())
+            {
+                <div class="row">
+                    @foreach (var news in Model)
+                    {
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">@news.NewsTitle</h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">@news.CategoryName</h6>
+                                    <p class="card-text">@news.Headline</p>
+                                    <div class="mb-2">
+                                        @if (news.Tags.Any())
+                                        {
+                                            @foreach (var tag in news.Tags)
+                                            {
+                                                <span class="badge bg-secondary me-1">@tag</span>
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <small class="text-muted">
+                                        By @news.CreatedByName on @news.CreatedDateFormatted
+                                    </small>
+                                    <a asp-action="Details" asp-route-id="@news.NewsArticleId" class="btn btn-primary btn-sm float-end">Read More</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <h4>No news available</h4>
+                    <p>There are currently no active news articles to display.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

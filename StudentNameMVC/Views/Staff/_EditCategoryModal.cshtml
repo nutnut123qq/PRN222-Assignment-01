@@ -1,0 +1,65 @@
+@model StudentNameMVC.Models.CategoryViewModel
+
+<form id="editCategoryForm" asp-action="EditCategory" method="post">
+    <input asp-for="CategoryId" type="hidden" />
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+    
+    <div class="mb-3">
+        <label asp-for="CategoryName" class="form-label">Category Name</label>
+        <input asp-for="CategoryName" class="form-control" placeholder="Enter category name" />
+        <span asp-validation-for="CategoryName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="CategoryDescription" class="form-label">Description</label>
+        <textarea asp-for="CategoryDescription" class="form-control" rows="3" placeholder="Enter category description (optional)"></textarea>
+        <span asp-validation-for="CategoryDescription" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ParentCategoryId" class="form-label">Parent Category</label>
+        <select asp-for="ParentCategoryId" class="form-select">
+            <option value="">Root Category (No Parent)</option>
+            @if (ViewBag.Categories != null)
+            {
+                @foreach (var category in ViewBag.Categories)
+                {
+                    @if (category.CategoryId != Model.CategoryId) // Prevent self-reference
+                    {
+                        @if (Model.ParentCategoryId == category.CategoryId)
+                        {
+                            <option value="@category.CategoryId" selected>@category.CategoryName</option>
+                        }
+                        else
+                        {
+                            <option value="@category.CategoryId">@category.CategoryName</option>
+                        }
+                    }
+                }
+            }
+        </select>
+        <span asp-validation-for="ParentCategoryId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <div class="form-check">
+            <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+            <label asp-for="IsActive" class="form-check-label">
+                Active
+            </label>
+        </div>
+        <span asp-validation-for="IsActive" class="text-danger"></span>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitCategoryForm('editCategoryForm', 'editCategoryModal')">
+            <i class="fas fa-save"></i> Update Category
+        </button>
+    </div>
+</form>
+
+<script>
+    // Enable client-side validation
+    $.validator.unobtrusive.parse('#editCategoryForm');
+</script>

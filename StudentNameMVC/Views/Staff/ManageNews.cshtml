@@ -1,0 +1,207 @@
+@model List<StudentNameMVC.Models.NewsArticleViewModel>
+@{
+    ViewData["Title"] = "Manage News Articles";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Manage News Articles</h1>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createNewsModal">
+                    <i class="fas fa-plus"></i> Create New Article
+                </button>
+            </div>
+
+            <!-- Search Form -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <form method="get" class="d-flex">
+                        <input type="text" name="search" value="@ViewBag.Search" class="form-control me-2" placeholder="Search news articles..." />
+                        <button type="submit" class="btn btn-outline-primary">Search</button>
+                        @if (!string.IsNullOrEmpty(ViewBag.Search))
+                        {
+                            <a href="@Url.Action("ManageNews")" class="btn btn-outline-secondary ms-2">Clear</a>
+                        }
+                    </form>
+                </div>
+            </div>
+
+            <!-- News Articles Table -->
+            <div class="card">
+                <div class="card-body">
+                    @if (Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Title</th>
+                                        <th>Category</th>
+                                        <th>Tags</th>
+                                        <th>Status</th>
+                                        <th>Created Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var news in Model)
+                                    {
+                                        <tr>
+                                            <td>@news.NewsArticleId</td>
+                                            <td>
+                                                <strong>@news.NewsTitle</strong>
+                                                <br />
+                                                <small class="text-muted">@news.Headline</small>
+                                            </td>
+                                            <td>@news.CategoryName</td>
+                                            <td>
+                                                @if (news.Tags.Any())
+                                                {
+                                                    @foreach (var tag in news.Tags)
+                                                    {
+                                                        <span class="badge bg-secondary me-1">@tag</span>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No tags</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="badge @(news.NewsStatus ? "bg-success" : "bg-danger")">
+                                                    @news.StatusText
+                                                </span>
+                                            </td>
+                                            <td>@news.CreatedDateFormatted</td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-info" onclick="viewNews('@news.NewsArticleId')">
+                                                    <i class="fas fa-eye"></i> View
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-warning" onclick="editNews('@news.NewsArticleId')">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="deleteNews('@news.NewsArticleId', '@news.NewsTitle')">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <h5>No news articles found</h5>
+                            <p>@(string.IsNullOrEmpty(ViewBag.Search) ? "You haven't created any news articles yet." : $"No news articles found for '{ViewBag.Search}'.")</p>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createNewsModal">
+                                <i class="fas fa-plus"></i> Create Your First Article
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create News Modal -->
+<div class="modal fade" id="createNewsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New News Article</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be loaded via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit News Modal -->
+<div class="modal fade" id="editNewsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit News Article</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be loaded via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Load create form when modal opens
+            $('#createNewsModal').on('show.bs.modal', function() {
+                $.get('@Url.Action("CreateNews")', function(data) {
+                    $('#createNewsModal .modal-body').html(data);
+                });
+            });
+        });
+
+        function viewNews(id) {
+            window.open('@Url.Action("Details", "Home")/' + id, '_blank');
+        }
+
+        function editNews(id) {
+            $.get('@Url.Action("EditNews")/' + id, function(data) {
+                $('#editNewsModal .modal-body').html(data);
+                $('#editNewsModal').modal('show');
+            });
+        }
+
+        function deleteNews(id, title) {
+            if (confirm('Are you sure you want to delete the news article "' + title + '"?')) {
+                $.post('@Url.Action("DeleteNews")/' + id, function(response) {
+                    if (response.success) {
+                        showToast('success', response.message);
+                        location.reload();
+                    } else {
+                        showToast('error', response.message);
+                    }
+                }).fail(function() {
+                    showToast('error', 'An error occurred while deleting the news article.');
+                });
+            }
+        }
+
+        function submitNewsForm(formId, modalId) {
+            var form = $('#' + formId);
+            $.post(form.attr('action'), form.serialize(), function(response) {
+                if (response.success) {
+                    $('#' + modalId).modal('hide');
+                    showToast('success', response.message);
+                    location.reload();
+                } else {
+                    $('#' + modalId + ' .modal-body').html(response);
+                }
+            }).fail(function() {
+                showToast('error', 'An error occurred while saving the news article.');
+            });
+        }
+
+        function showToast(type, message) {
+            var toastClass = type === 'success' ? 'bg-success' : 'bg-danger';
+            var toast = $('<div class="toast align-items-center text-white ' + toastClass + ' border-0" role="alert">' +
+                '<div class="d-flex">' +
+                '<div class="toast-body">' + message + '</div>' +
+                '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+                '</div></div>');
+            
+            $('.toast-container').remove();
+            $('body').append('<div class="toast-container position-fixed top-0 end-0 p-3"></div>');
+            $('.toast-container').append(toast);
+            toast.toast('show');
+        }
+    </script>
+}
